@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Habit Tracker</title>
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#050714;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --muted2: rgba(255,255,255,0.45);
+
+      --dot-off: rgba(255,255,255,0.10);
+      --dot-ring: rgba(255,255,255,0.18);
+
+      /* streak colors */
+      --c0: rgba(255,255,255,0.20); /* 1-6 */
+      --c1: #4aa3ff;                /* 7-13 */
+      --c2: #42d392;                /* 14-29 */
+      --c3: #ffd166;                /* 30-59 */
+      --c4: #ff5ea0;                /* 60+ */
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(74,163,255,0.22), transparent 55%),
+        radial-gradient(900px 700px at 85% 25%, rgba(255,94,160,0.16), transparent 60%),
+        radial-gradient(900px 700px at 55% 90%, rgba(66,211,146,0.14), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    /* top header */
+    .topbar{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 14px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .today{
+      font-size: 22px;
+      letter-spacing: 0.2px;
+      font-weight: 650;
+    }
+    .subtitle{
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    button{
+      appearance:none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      cursor:pointer;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      backdrop-filter: blur(10px);
+    }
+    button:hover{
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.16);
+    }
+    button:active{ transform: translateY(1px); }
+    .danger{
+      background: rgba(255,94,160,0.12);
+      border-color: rgba(255,94,160,0.25);
+    }
+
+    /* card */
+    .card{
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border-radius: 18px;
+      overflow:hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    /* grid */
+    .grid{
+      width:100%;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .gridInner{
+      min-width: 920px; /* keeps it from getting too cramped */
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 240px 1fr;
+      gap: 0;
+      align-items:stretch;
+    }
+
+    /* sticky calendar header */
+    .calendarHeader{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: linear-gradient(180deg, rgba(10,14,28,0.92), rgba(10,14,28,0.55));
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .leftHeader{
+      padding: 14px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .2px;
+    }
+
+    .days{
+      display:grid;
+      gap: 0;
+      padding: 10px 12px;
+    }
+
+    .dayCell{
+      padding: 10px 6px;
+      text-align:center;
+      border-left: 1px solid rgba(255,255,255,0.06);
+    }
+    .dow{
+      font-size: 11px;
+      color: var(--muted2);
+      letter-spacing: .2px;
+      margin-bottom: 4px;
+    }
+    .dom{
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 650;
+    }
+    .isToday .dom{
+      color: #fff;
+    }
+    .isToday{
+      background: rgba(74,163,255,0.10);
+      border-radius: 12px;
+      border: 1px solid rgba(74,163,255,0.22);
+    }
+
+    /* habit rows */
+    .habitRow{
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .habitLeft{
+      padding: 12px 14px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .habitName{
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .1px;
+    }
+    .habitMeta{
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .habitControls{
+      display:flex;
+      gap:8px;
+    }
+    .iconBtn{
+      width: 34px;
+      height: 34px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      cursor:pointer;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .iconBtn:hover{
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.16);
+      color: var(--text);
+    }
+
+    .dots{
+      display:grid;
+      gap: 0;
+      padding: 10px 12px;
+      align-items:center;
+    }
+
+    .dotWrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 6px;
+      border-left: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .dot{
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--dot-off);
+      border: 1px solid var(--dot-ring);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
+      cursor:pointer;
+      transition: transform .06s ease, filter .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .dot:hover{ filter: brightness(1.15); }
+    .dot:active{ transform: scale(0.94); }
+
+    .legend{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      padding: 12px 14px 14px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+    .swatch{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display:inline-block;
+    }
+
+    .hint{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 700px){
+      .row{ grid-template-columns: 190px 1fr; }
+      .gridInner{ min-width: 860px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <div class="today" id="todayText">—</div>
+        <div class="subtitle">Tap circles to mark a habit. Data stays in this browser (localStorage).</div>
+      </div>
+      <div class="actions">
+        <button id="addHabitBtn">+ Add habit</button>
+        <button id="renameHabitBtn">Rename habit</button>
+        <button id="removeHabitBtn" class="danger">Remove habit</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid" id="grid">
+       
