@@ -2,309 +2,499 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>My Habit Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Habit Chains</title>
   <style>
     :root{
-      --bg1:#0b1020;
-      --bg2:#050714;
-      --card: rgba(255,255,255,0.06);
-      --card2: rgba(255,255,255,0.04);
-      --border: rgba(255,255,255,0.10);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.62);
-      --muted2: rgba(255,255,255,0.45);
+      --bg0:#070a12;
+      --bg1:#0b1022;
+      --panel: rgba(255,255,255,.04);
+      --panel2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.08);
+      --text:#e5e7eb;
+      --muted:#94a3b8;
 
-      --dot-off: rgba(255,255,255,0.10);
-      --dot-ring: rgba(255,255,255,0.18);
+      --dotOff: rgba(255,255,255,.10);
+      --dotStroke: rgba(255,255,255,.18);
 
-      /* streak colors */
-      --c0: rgba(255,255,255,0.20); /* 1-6 */
-      --c1: #4aa3ff;                /* 7-13 */
-      --c2: #42d392;                /* 14-29 */
-      --c3: #ffd166;                /* 30-59 */
-      --c4: #ff5ea0;                /* 60+ */
+      --c1:#3b82f6;   /* 1–6 */
+      --c2:#22c55e;   /* 7–13 */
+      --c3:#f59e0b;   /* 14–29 */
+      --c4:#a855f7;   /* 30+ */
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color: var(--text);
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
       background:
-        radial-gradient(1200px 800px at 15% 10%, rgba(74,163,255,0.22), transparent 55%),
-        radial-gradient(900px 700px at 85% 25%, rgba(255,94,160,0.16), transparent 60%),
-        radial-gradient(900px 700px at 55% 90%, rgba(66,211,146,0.14), transparent 55%),
-        linear-gradient(160deg, var(--bg1), var(--bg2));
-      overflow-x:hidden;
+        radial-gradient(1200px 700px at 20% 10%, rgba(59,130,246,.18), transparent 55%),
+        radial-gradient(900px 700px at 90% 20%, rgba(168,85,247,.14), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg0));
+      display:flex;
+      justify-content:center;
+      padding:24px;
     }
 
-    .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 18px 40px;
-    }
+    .app{ width:min(1100px, 100%); }
 
-    /* top header */
     .topbar{
       display:flex;
-      align-items:flex-end;
+      gap:14px;
       justify-content:space-between;
-      gap:16px;
-      margin-bottom: 14px;
-    }
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .today{
-      font-size: 22px;
-      letter-spacing: 0.2px;
-      font-weight: 650;
-    }
-    .subtitle{
-      color: var(--muted);
-      font-size: 13px;
+      align-items:flex-end;
+      margin-bottom:14px;
     }
 
-    .actions{
+    .title{ display:flex; flex-direction:column; gap:6px; }
+    h1{ margin:0; font-weight:600; letter-spacing:.2px; font-size:20px; }
+    .subtitle{ color:var(--muted); font-size:13px; }
+
+    .controls{
       display:flex;
       gap:10px;
+      align-items:center;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
-    button{
-      appearance:none;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      cursor:pointer;
-      transition: transform .08s ease, background .15s ease, border-color .15s ease;
-      backdrop-filter: blur(10px);
-    }
-    button:hover{
-      background: rgba(255,255,255,0.09);
-      border-color: rgba(255,255,255,0.16);
-    }
-    button:active{ transform: translateY(1px); }
-    .danger{
-      background: rgba(255,94,160,0.12);
-      border-color: rgba(255,94,160,0.25);
-    }
 
-    /* card */
-    .card{
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--card), var(--card2));
-      border-radius: 18px;
-      overflow:hidden;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-    }
-
-    /* grid */
-    .grid{
-      width:100%;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .gridInner{
-      min-width: 920px; /* keeps it from getting too cramped */
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 240px 1fr;
-      gap: 0;
-      align-items:stretch;
-    }
-
-    /* sticky calendar header */
-    .calendarHeader{
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: linear-gradient(180deg, rgba(10,14,28,0.92), rgba(10,14,28,0.55));
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .leftHeader{
-      padding: 14px 14px;
+    .seg{
       display:flex;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:10px;
+      overflow:hidden;
+    }
+    .seg button{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .seg button.active{ background:var(--panel2); color:var(--text); }
+
+    .add{
+      display:flex;
+      gap:8px;
       align-items:center;
-      gap:10px;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .2px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px;
+    }
+    .add input{
+      width:260px;
+      max-width:50vw;
+      background:transparent;
+      border:0;
+      outline:none;
+      color:var(--text);
+      font-size:13px;
+    }
+    .add input::placeholder{color:rgba(148,163,184,.8)}
+    .add button{
+      border:1px solid var(--border);
+      background:var(--panel2);
+      color:var(--text);
+      padding:7px 10px;
+      border-radius:10px;
+      font-size:12px;
+      cursor:pointer;
     }
 
-    .days{
+    .board{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      border-radius:16px;
+      overflow:hidden;
+    }
+
+    .grid{ display:grid; grid-template-columns: 220px 1fr; }
+
+    .leftHead{
+      padding:14px 14px 10px 14px;
+      border-right:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+    }
+    .rangeLabel{ font-size:12px; color:var(--muted); line-height:1.35; }
+
+    .datesWrap{
+      overflow:auto hidden;
+      border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+    }
+
+    .datesRow, .row{
       display:grid;
-      gap: 0;
-      padding: 10px 12px;
+      grid-auto-flow:column;
+      grid-auto-columns: 44px;
+      align-items:center;
+      padding:12px 10px;
+      min-width:max-content;
     }
 
-    .dayCell{
-      padding: 10px 6px;
-      text-align:center;
-      border-left: 1px solid rgba(255,255,255,0.06);
-    }
+    .dayCell{ text-align:center; padding:0 6px; }
     .dow{
-      font-size: 11px;
-      color: var(--muted2);
-      letter-spacing: .2px;
-      margin-bottom: 4px;
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.3px;
+      margin-bottom:4px;
+      text-transform:uppercase;
     }
-    .dom{
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 650;
-    }
-    .isToday .dom{
-      color: #fff;
-    }
-    .isToday{
-      background: rgba(74,163,255,0.10);
-      border-radius: 12px;
-      border: 1px solid rgba(74,163,255,0.22);
+    .md{ font-size:12px; color:var(--text); }
+    .today{ position:relative; }
+    .today::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:-10px;
+      width:18px;
+      height:2px;
+      border-radius:2px;
+      background:rgba(229,231,235,.75);
     }
 
-    /* habit rows */
     .habitRow{
-      border-top: 1px solid rgba(255,255,255,0.07);
+      display:grid;
+      grid-template-columns: 220px 1fr;
+      border-bottom:1px solid rgba(255,255,255,.06);
     }
-
-    .habitLeft{
-      padding: 12px 14px;
-      border-right: 1px solid rgba(255,255,255,0.08);
+    .habitCell{
+      padding:12px 14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
+      border-right:1px solid var(--border);
+      background:rgba(0,0,0,.10);
     }
     .habitName{
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: .1px;
-    }
-    .habitMeta{
-      color: var(--muted);
-      font-size: 12px;
+      font-size:13px;
       white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .habitControls{
-      display:flex;
-      gap:8px;
-    }
+    .habitBtns{ display:flex; gap:6px; }
     .iconBtn{
-      width: 34px;
-      height: 34px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-      color: var(--muted);
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      border-radius:10px;
+      padding:6px 8px;
+      font-size:12px;
       cursor:pointer;
-      transition: background .15s ease, border-color .15s ease, color .15s ease;
-      user-select:none;
-    }
-    .iconBtn:hover{
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.16);
-      color: var(--text);
     }
 
-    .dots{
-      display:grid;
-      gap: 0;
-      padding: 10px 12px;
-      align-items:center;
-    }
-
-    .dotWrap{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 10px 6px;
-      border-left: 1px solid rgba(255,255,255,0.06);
-    }
+    .cellsWrap{ overflow:auto hidden; }
+    .cell{ display:flex; justify-content:center; align-items:center; height:38px; }
 
     .dot{
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      background: var(--dot-off);
-      border: 1px solid var(--dot-ring);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.10);
+      width:14px; height:14px;
+      border-radius:999px;
+      border:1px solid var(--dotStroke);
+      background:var(--dotOff);
       cursor:pointer;
-      transition: transform .06s ease, filter .12s ease, background .12s ease, border-color .12s ease;
+      transition: transform .08s ease, filter .12s ease, background .12s ease, border-color .12s ease;
     }
-    .dot:hover{ filter: brightness(1.15); }
-    .dot:active{ transform: scale(0.94); }
+    .dot:hover{ transform:scale(1.12); filter:brightness(1.12); }
 
-    .legend{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      padding: 12px 14px 14px;
-      color: var(--muted);
-      font-size: 12px;
-      border-top: 1px solid rgba(255,255,255,0.07);
-    }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-    }
-    .swatch{
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      display:inline-block;
+    .filled.t1{ background: color-mix(in oklab, var(--c1) 70%, transparent); border-color: color-mix(in oklab, var(--c1) 75%, white 0%); }
+    .filled.t2{ background: color-mix(in oklab, var(--c2) 70%, transparent); border-color: color-mix(in oklab, var(--c2) 75%, white 0%); }
+    .filled.t3{ background: color-mix(in oklab, var(--c3) 70%, transparent); border-color: color-mix(in oklab, var(--c3) 75%, white 0%); }
+    .filled.t4{ background: color-mix(in oklab, var(--c4) 70%, transparent); border-color: color-mix(in oklab, var(--c4) 75%, white 0%); }
+
+    .emptyState{
+      padding:18px 14px;
+      color:var(--muted);
+      font-size:13px;
+      border-top:1px solid rgba(255,255,255,.06);
     }
 
-    .hint{
-      margin-top: 10px;
-      color: var(--muted2);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 700px){
-      .row{ grid-template-columns: 190px 1fr; }
-      .gridInner{ min-width: 860px; }
+    @media (max-width: 720px){
+      .grid, .habitRow{ grid-template-columns: 170px 1fr; }
+      .add input{ width:170px; }
     }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
+  <div class="app">
     <div class="topbar">
       <div class="title">
-        <div class="today" id="todayText">—</div>
-        <div class="subtitle">Tap circles to mark a habit. Data stays in this browser (localStorage).</div>
+        <h1>Habit Chains</h1>
+        <div class="subtitle" id="subtitle"></div>
       </div>
-      <div class="actions">
-        <button id="addHabitBtn">+ Add habit</button>
-        <button id="renameHabitBtn">Rename habit</button>
-        <button id="removeHabitBtn" class="danger">Remove habit</button>
+
+      <div class="controls">
+        <div class="seg">
+          <button id="r7" type="button">7d</button>
+          <button id="r14" type="button">14d</button>
+          <button id="r30" type="button">30d</button>
+        </div>
+
+        <div class="add">
+          <input id="habitInput" placeholder="Add a habit (e.g. Run)" maxlength="40" />
+          <button id="addBtn" type="button">Add</button>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="grid" id="grid">
-       
+    <div class="board">
+      <div class="grid">
+        <div class="leftHead">
+          <div class="rangeLabel" id="rangeLabel"></div>
+        </div>
+        <div class="datesWrap">
+          <div class="datesRow" id="datesRow"></div>
+        </div>
+      </div>
+
+      <div id="rows"></div>
+
+      <div class="emptyState" id="emptyState" style="display:none;">
+        No habits yet. Add one above to start your chain.
+      </div>
+    </div>
+  </div>
+
+<script>
+  const STORE_KEY = "habit_chains_v1";
+
+  function loadStore(){
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return { habits: [], checks: {}, rangeDays: 14 };
+      const parsed = JSON.parse(raw);
+      return {
+        habits: Array.isArray(parsed.habits) ? parsed.habits : [],
+        checks: parsed.checks && typeof parsed.checks === "object" ? parsed.checks : {},
+        rangeDays: [7,14,30].includes(parsed.rangeDays) ? parsed.rangeDays : 14
+      };
+    } catch {
+      return { habits: [], checks: {}, rangeDays: 14 };
+    }
+  }
+  function saveStore(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+
+  let store = loadStore();
+
+  const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const MONTH = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function startOfDay(date){ return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
+  function addDays(date, delta){ const d = new Date(date); d.setDate(d.getDate() + delta); return d; }
+  function toKey(date){ return `${date.getFullYear()}-${pad2(date.getMonth()+1)}-${pad2(date.getDate())}`; }
+
+  function getDateWindow(days){
+    const today = startOfDay(new Date());
+    const list = [];
+    for(let i = days-1; i >= 0; i--) list.push(addDays(today, -i));
+    return list;
+  }
+
+  function formatRangeLabel(days){
+    const today = startOfDay(new Date());
+    const start = addDays(today, -(days-1));
+    const s = `${MONTH[start.getMonth()]} ${start.getDate()}`;
+    const e = `${MONTH[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+    return `${s} → ${e} (${days} days, ending today)`;
+  }
+
+  function formatSubtitle(){
+    const now = new Date();
+    const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][now.getDay()];
+    const monthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][now.getMonth()];
+    return `${weekday}, ${monthName} ${now.getDate()}`;
+  }
+
+  function streakUpTo(habitId, date){
+    let streak = 0;
+    let cur = startOfDay(date);
+    while(true){
+      const k = toKey(cur);
+      const isChecked = !!(store.checks[habitId] && store.checks[habitId][k]);
+      if(!isChecked) break;
+      streak++;
+      cur = addDays(cur, -1);
+    }
+    return streak;
+  }
+
+  function tierFromStreak(s){
+    if(s >= 30) return "t4";
+    if(s >= 14) return "t3";
+    if(s >= 7)  return "t2";
+    if(s >= 1)  return "t1";
+    return null;
+  }
+
+  function addHabit(name){
+    const trimmed = name.trim();
+    if(!trimmed) return;
+
+    const id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+    store.habits.push({ id, name: trimmed });
+    store.checks[id] = store.checks[id] || {};
+    saveStore();
+    render();
+  }
+
+  function renameHabit(id){
+    const h = store.habits.find(x => x.id === id);
+    if(!h) return;
+    const next = prompt("Rename habit:", h.name);
+    if(next === null) return;
+    const t = next.trim();
+    if(!t) return;
+    h.name = t;
+    saveStore();
+    render();
+  }
+
+  function deleteHabit(id){
+    const h = store.habits.find(x => x.id === id);
+    if(!h) return;
+    if(!confirm(`Delete "${h.name}"? This removes its history on this device.`)) return;
+    store.habits = store.habits.filter(x => x.id !== id);
+    delete store.checks[id];
+    saveStore();
+    render();
+  }
+
+  function toggleCheck(habitId, dateKey){
+    store.checks[habitId] = store.checks[habitId] || {};
+    store.checks[habitId][dateKey] = !store.checks[habitId][dateKey];
+    saveStore();
+    render();
+  }
+
+  function setRange(days){
+    store.rangeDays = days;
+    saveStore();
+    render();
+  }
+
+  const datesRowEl = document.getElementById("datesRow");
+  const rowsEl = document.getElementById("rows");
+  const rangeLabelEl = document.getElementById("rangeLabel");
+  const subtitleEl = document.getElementById("subtitle");
+  const emptyEl = document.getElementById("emptyState");
+
+  function renderRangeButtons(){
+    ["r7","r14","r30"].forEach(id => document.getElementById(id).classList.remove("active"));
+    document.getElementById(`r${store.rangeDays}`).classList.add("active");
+  }
+
+  function syncHorizontalScroll(){
+    const headerScroll = document.querySelector(".datesWrap");
+    const rowScrolls = Array.from(document.querySelectorAll(".cellsWrap"));
+    if(!rowScrolls.length) return;
+
+    let isSyncing = false;
+    function setAll(x){
+      if(isSyncing) return;
+      isSyncing = true;
+      headerScroll.scrollLeft = x;
+      rowScrolls.forEach(el => el.scrollLeft = x);
+      isSyncing = false;
+    }
+
+    headerScroll.onscroll = () => setAll(headerScroll.scrollLeft);
+    rowScrolls.forEach(el => { el.onscroll = () => setAll(el.scrollLeft); });
+  }
+
+  function render(){
+    subtitleEl.textContent = formatSubtitle();
+    rangeLabelEl.textContent = formatRangeLabel(store.rangeDays);
+    renderRangeButtons();
+
+    const dates = getDateWindow(store.rangeDays);
+    const todayKey = toKey(startOfDay(new Date()));
+
+    datesRowEl.innerHTML = "";
+    dates.forEach(d => {
+      const key = toKey(d);
+      const cell = document.createElement("div");
+      cell.className = "dayCell" + (key === todayKey ? " today" : "");
+      cell.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="md">${MONTH[d.getMonth()]} ${d.getDate()}</div>`;
+      datesRowEl.appendChild(cell);
+    });
+
+    rowsEl.innerHTML = "";
+    emptyEl.style.display = store.habits.length ? "none" : "block";
+
+    store.habits.forEach(h => {
+      const rowWrap = document.createElement("div");
+      rowWrap.className = "habitRow";
+
+      const left = document.createElement("div");
+      left.className = "habitCell";
+      left.innerHTML = `
+        <div class="habitName" title="${h.name.replaceAll('"','&quot;')}">${h.name}</div>
+        <div class="habitBtns">
+          <button class="iconBtn" type="button" title="Rename">✎</button>
+          <button class="iconBtn" type="button" title="Delete">🗑</button>
+        </div>
+      `;
+      const [renameBtn, deleteBtn] = left.querySelectorAll("button");
+      renameBtn.addEventListener("click", () => renameHabit(h.id));
+      deleteBtn.addEventListener("click", () => deleteHabit(h.id));
+
+      const right = document.createElement("div");
+      right.className = "cellsWrap";
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      dates.forEach(d => {
+        const k = toKey(d);
+        const checked = !!(store.checks[h.id] && store.checks[h.id][k]);
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if(checked){
+          const s = streakUpTo(h.id, d);
+          const tier = tierFromStreak(s);
+          dot.classList.add("filled");
+          if(tier) dot.classList.add(tier);
+        }
+        dot.addEventListener("click", () => toggleCheck(h.id, k));
+        cell.appendChild(dot);
+        row.appendChild(cell);
+      });
+
+      right.appendChild(row);
+      rowWrap.appendChild(left);
+      rowWrap.appendChild(right);
+      rowsEl.appendChild(rowWrap);
+    });
+
+    syncHorizontalScroll();
+  }
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    const inp = document.getElementById("habitInput");
+    addHabit(inp.value);
+    inp.value = "";
+    inp.focus();
+  });
+  document.getElementById("habitInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter") document.getElementById("addBtn").click();
+  });
+
+  document.getElementById("r7").addEventListener("click", () => setRange(7));
+  document.getElementById("r14").addEventListener("click", () => setRange(14));
+  document.getElementById("r30").addEventListener("click", () => setRange(30));
+
+  render();
+</script>
+</body>
+</html>
